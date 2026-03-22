@@ -1,0 +1,36 @@
+# Model checkpoint
+checkpoints/
+
+# Media files
+samples/
+outputs/
+web_uploads/
+web_results/
+
+# FOMM core repo
+fomm_core/
+
+# Old files
+demo.py
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Large file types
+*.mp4
+*.avi
+*.mov
+*.gif
+*.pth
+*.tar
+
+# OS files
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Logs
+*.log
+log/

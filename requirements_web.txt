@@ -1,0 +1,9 @@
+# Existing FOMM requirements (already installed)
+# -r requirements.txt
+
+# Web framework
+flask==2.3.3
+werkzeug==2.3.7
+
+# For production deployment (Render / Railway)
+gunicorn==21.2.0

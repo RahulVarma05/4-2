@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: motion-transfer
+    runtime: python
+    buildCommand: |
+      pip install -r requirements.txt
+      pip install -r requirements_web.txt
+      pip install opencv-python-headless==4.7.0.72
+      git clone https://github.com/AliaksandrSiarohin/first-order-model fomm_core
+      mkdir -p checkpoints samples web_uploads web_results
+      python prepare_demo.py
+    startCommand: gunicorn app:app --workers 1 --threads 2 --timeout 300 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.8.18
+    disk:
+      name: model-storage
+      mountPath: /opt/render/project/src
+      sizeGB: 5
