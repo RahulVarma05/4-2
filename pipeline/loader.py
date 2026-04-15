@@ -113,7 +113,7 @@ def load_source_image(path):
     return image
 
 
-def load_driving_video(path, max_frames=None):
+def load_driving_video(path, max_frames=None, max_seconds=None):
     """
     Load a driving video and prepare each frame for FOMM.
 
@@ -121,10 +121,12 @@ def load_driving_video(path, max_frames=None):
     - Resizes each frame to 256x256
     - Drops alpha channel if present
     - Optionally limits to max_frames (useful for fast iteration)
+    - Optionally limits to max_seconds based on the video's FPS.
 
     Args:
         path      : path to driving video (mp4, avi, etc.)
         max_frames: if set, only load this many frames (None = load all)
+        max_seconds: if set, only load this many seconds worth of frames.
 
     Returns:
         frames : list of numpy arrays, each shape (256, 256, 3), float32, 0-1
@@ -133,11 +135,17 @@ def load_driving_video(path, max_frames=None):
     reader = imageio.get_reader(path)
     fps    = reader.get_meta_data()['fps']
 
+    limit = None
+    if max_seconds is not None:
+        limit = int(max_seconds * fps)
+    elif max_frames is not None:
+        limit = max_frames
+
     frames = []
     try:
         for frame in reader:
             frames.append(frame)
-            if max_frames and len(frames) >= max_frames:
+            if limit and len(frames) >= limit:
                 break
     except RuntimeError:
         # imageio raises RuntimeError at end of some video files — this is normal
@@ -165,9 +173,17 @@ def save_video(frames, output_path, fps):
         output_path : where to save the video (e.g. outputs/result.mp4)
         fps         : frames per second for the output video
     """
+    import cv2
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    imageio.mimsave(output_path, [img_as_ubyte(f) for f in frames], fps=fps)
-    print(f"  Saved video: {output_path}  ({len(frames)} frames @ {fps:.2f} fps)")
+    
+    # Upscale 256x256 FOMM output to 720x720 (720p equivalent square) for improved visual quality
+    upscaled_frames = [
+        img_as_ubyte(np.clip(cv2.resize(f, (720, 720), interpolation=cv2.INTER_CUBIC), 0, 1))
+        for f in frames
+    ]
+    
+    imageio.mimsave(output_path, upscaled_frames, fps=fps)
+    print(f"  Saved video: {output_path}  ({len(frames)} frames @ {fps:.2f} fps, 720p)")
 
 
 # ──────────────────────────────────────────────

@@ -1,6 +1,6 @@
 # FOMM Motion Transfer
 
-AI-powered face animation using First Order Motion Model (NeurIPS 2019).
+AI-powered face motion transfer using First Order Motion Model (NeurIPS 2019).
 Upload a portrait photo and a driving video — the AI transfers head motion,
 facial expressions and lip movements onto your static image.
 
@@ -46,19 +46,19 @@ Open `http://localhost:5000`
 
 ## Pages
 
-- **Home** — upload source image and driving video, generate animation
+- **Home** — upload source image and driving video, generate motion transfer
 - **About** — project background and full pipeline architecture
 - **User Guide** — input requirements, examples, troubleshooting
 
 ## Command line usage
 ```
 python main.py --mode animate --max_frames 30 --cpu
-python main.py --mode motion_transfer --find_best_frame --cpu
+python main.py --mode face_composition --find_best_frame --cpu
 ```
 
 ## Research
 
-Based on: First Order Motion Model for Image Animation
+Based on: First Order Motion Model for Image Motion Transfer
 Siarohin et al., NeurIPS 2019
 https://papers.nips.cc/paper/8935-first-order-motion-model-for-image-animation
 ```

@@ -60,50 +60,36 @@ def get_kp_pixels(kp_tensor, image_size=256):
 #  Temporal smoothing
 # ──────────────────────────────────────────────
 
+def init_conv_lstm_state():
+    """
+    Initialize ConvLSTM hidden state and cell state.
+    """
+    return None, None
+
 def temporal_smooth(kp_value, kp_jacobian,
                     prev_kp_value, prev_kp_jacobian,
-                    alpha=0.60):
+                    alpha=0.60, use_conv_lstm=False,
+                    conv_lstm_state=(None, None)):
     """
-    Apply Exponential Moving Average (EMA) smoothing to keypoints
-    across consecutive video frames to eliminate jitter.
-
-    How it works:
-        smoothed = alpha * current + (1 - alpha) * previous
-
-    With alpha=0.60:
-        - 60% of the current frame's detected keypoint position
-        - 40% carry-over from the previous frame's smoothed position
-        This removes frame-to-frame detector noise while keeping
-        motion feeling responsive.
-
-    Why alpha=0.60 and not the old 0.75:
-        At 0.75 only 25% of the previous frame blends in.
-        That is not enough averaging to kill the jitter visible
-        in slow-motion playback. At 0.60 the smoothing is strong
-        enough to eliminate jitter with no perceptible lag.
-
-    Args:
-        kp_value        : torch tensor — current frame keypoint positions
-        kp_jacobian     : torch tensor or None — current frame jacobians
-        prev_kp_value   : torch tensor or None — previous smoothed positions
-                          (None on the very first frame)
-        prev_kp_jacobian: torch tensor or None — previous smoothed jacobians
-        alpha           : EMA weight for current frame (default 0.60)
-
-    Returns:
-        smoothed dict with keys 'value' and optionally 'jacobian'
+    Apply either Exponential Moving Average (EMA) or ConvLSTM smoothing 
+    to keypoints across consecutive video frames to eliminate jitter.
     """
-    # First frame — nothing to smooth against, return current as-is
-    if prev_kp_value is None:
-        result = {'value': kp_value}
-        if kp_jacobian is not None:
-            result['jacobian'] = kp_jacobian
-        return result
+    result = {}
 
-    # Apply EMA to keypoint positions
-    smoothed_value = alpha * kp_value + (1.0 - alpha) * prev_kp_value
-
-    result = {'value': smoothed_value}
+    if use_conv_lstm:
+        from pipeline.conv_lstm import get_conv_lstm
+        model = get_conv_lstm(kp_value.shape[1], kp_value.device)
+        state_in = conv_lstm_state if conv_lstm_state[0] is not None else None
+        smoothed_value, new_state = model(kp_value, state_in)
+        result['value'] = smoothed_value
+        result['conv_state'] = new_state
+    else:
+        # EMA route
+        if prev_kp_value is None:
+            smoothed_value = kp_value
+        else:
+            smoothed_value = alpha * kp_value + (1.0 - alpha) * prev_kp_value
+        result['value'] = smoothed_value
 
     # Apply EMA to jacobians if present
     if kp_jacobian is not None and prev_kp_jacobian is not None:

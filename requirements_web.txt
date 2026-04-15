@@ -4,6 +4,8 @@
 # Web framework
 flask==2.3.3
 werkzeug==2.3.7
+Flask-SQLAlchemy==3.0.5
+Flask-Login==0.6.2
 
 # For production deployment (Render / Railway)
 gunicorn==21.2.0
