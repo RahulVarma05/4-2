@@ -78,9 +78,10 @@ with app.app_context():
 UPLOAD_FOLDER = 'web_uploads'
 RESULT_FOLDER = 'web_results'
 SAMPLE_VIDEOS = {
-    "1": os.path.join('samples', 'driving.mp4'),
-    "2": os.path.join('samples', 'driving-2.mp4'),
-    "3": os.path.join('samples', 'driving-3.mp4'),
+    "1": os.path.join('samples', 'VideoProject.mp4'),
+    "2": os.path.join('samples', 'driving.mp4'),
+    "3": os.path.join('samples', 'driving-2.mp4'),
+    "4": os.path.join('samples', 'driving-3.mp4'),
 }
 CONFIG_PATH   = os.path.join('fomm_core', 'config', 'vox-256.yaml')
 CHECKPOINT    = os.path.join('checkpoints', 'vox-cpk.pth.tar')
@@ -261,6 +262,13 @@ def download(jid):
         as_attachment=True,
         download_name='motion_mimic.mp4'
     )
+
+@app.route('/samples/<path:filename>')
+def serve_sample(filename):
+    sample_path = os.path.join('samples', filename)
+    if not os.path.exists(sample_path):
+        abort(404)
+    return send_file(sample_path)
 
 @app.route('/sample-video/<int:sample_id>')
 def sample_video(sample_id):
